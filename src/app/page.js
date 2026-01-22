@@ -4,15 +4,31 @@ import Link from "next/link";
 import toast, { Toaster } from 'react-hot-toast';
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const router=useRouter();
+  const [name, setname] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const resp = await axios.get("/api/users/info");
+        console.log(resp);
+        setname(resp.data.username);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchUser();
+  }, [])
+  const router = useRouter();
 
   const Logout = async () => {
     try {
-        await axios.get("api/users/logout");
-        toast.success("Logged Out!!");
-        router.push("/login");
+      await axios.get("api/users/logout");
+      toast.success("Logged Out!!");
+      router.push("/login");
 
       const notify = () => toast('Logged Out.');
     } catch (error) {
@@ -25,7 +41,8 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-screen items-center justify-center flex-col bg-zinc-50 font-sans dark:bg-black">
+      {<h1 className=" text-white text-4xl font-semibold">Welcome, {name}</h1>}
       <button onClick={Logout} className=" text-white bg-red-500 px-7 py-3 mt-5 border-2 border-gray-950 cursor-pointer hover:opacity-85 transition-all active:opacity-85 rounded-xl"> LogOut</button>
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <Image
