@@ -1,71 +1,103 @@
 "use client";
-import toast, { Toaster } from 'react-hot-toast';
+import React, { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
-import { use, useState } from "react";
-import Link from 'next/link'
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Label } from "../../components/ui/label";
+import { Input } from "../../components/ui/input";
+import { cn } from "@/lib/utils";
 
+export default function LoginFormDemo() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
+  });
 
-
-export default function Login() {
-    const [loading, setloading] = useState(false);
-    const router = useRouter();
-    const [user, setuser] = useState({
-        email: "",
-        password: ""
-    });
-
-    const notify = () => toast('Logged In Account.');
-
-    const Login = async () => {
-      
-        if (!user.email || !user.password) {
-            alert("Fill The Details");
-            return;
-        }
-        try {
-            setloading(true);
-             const resp= await axios.post("/api/users/login",user);
-             console.log("Sign Up Success",resp.data);
-
-             router.push("/");
-              notify();
-        } catch (error) {
-         const message =error?.response?.data?.error || "Something went wrong";
-
-    toast.error(message);
-    console.log(error);
-
-        } finally {
-            setloading(false);
-        }
-
-
-
+  const handleLogin = async () => {
+    if (!user.email || !user.password) {
+      toast.error("Fill The Details");
+      return;
     }
+    try {
+      setLoading(true);
+      const resp = await axios.post("/api/users/login", user);
+      console.log("Login Success", resp.data);
+      toast.success("Logged In Account.");
+      router.push("/");
+    } catch (error) {
+      const message = error?.response?.data?.error || "Something went wrong";
+      toast.error(message);
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  return (
+    <div className="shadow-input mx-auto w-full h-screen max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black flex flex-col justify-center">
+      <Toaster />
+      <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+        Log In
+      </h2>
+      <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        Enter your credentials to continue
+      </p>
 
-    return (
-        <>
-            <div className=" w-full h-screen flex items-center flex-col justify-center">
-                <Toaster />
+      <div className="my-8 flex flex-col gap-4">
+        <LabelInputContainer>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="projectmayhem@fc.com"
+            value={user.email}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
+          />
+        </LabelInputContainer>
 
-                <h1 className=" font-bold text-white text-5xl mb-11">LogIn Account</h1>
-                {loading ? <h1 className=" font-bold text-white text-xl mb-2">Logging In....</h1> : null}
-                <div className=" flex items-center justify-center flex-col gap-5">
-                    <div className=" flex items-center w-full max-w-md gap-5 justify-between">
-                        <label htmlFor="email">Email : </label>
-                        <input type="email" id="email" className=" border-2 border-gray-300 rounded-xl p-2" placeholder="Enter email" onChange={(e) => { setuser({ ...user, email: e.target.value }) }} />
-                    </div>
-                    <div className=" flex items-center gap-5 w-full  max-w-md justify-between">
-                        <label htmlFor="password">Password : </label>
-                        <input type="password" id="password" className=" border-2 border-gray-300 rounded-xl p-2" placeholder="Enter password" onChange={(e) => { setuser({ ...user, password: e.target.value }) }} />
-                    </div>
-                    <button onClick={Login} className=" text-white bg-gray-700 px-7 py-3 mt-5 border-2 border-gray-950 cursor-pointer hover:opacity-85 transition-all active:opacity-85 rounded-xl">Submit</button>
+        <LabelInputContainer>
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={user.password}
+            onChange={(e) => setUser({ ...user, password: e.target.value })}
+          />
+        </LabelInputContainer>
 
-                    <h3 className=" mt-5 text-gray-400 font-medium text-xl">Already have account? <Link href="/signup" className=" text-blue-700">SignUp</Link></h3>
-                </div>
-            </div>
-        </>
-    )
+        <button
+          onClick={handleLogin}
+          className="group/btn relative mt-4 cursor-pointer block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+          disabled={loading}
+        >
+          {loading ? "Logging In..." : "Submit"}
+          <BottomGradient />
+        </button>
+
+        <h3 className="mt-5 text-sm text-neutral-600 dark:text-neutral-300">
+          Don't have an account?{" "}
+          <Link href="/signup" className="text-blue-700">
+            Sign Up
+          </Link>
+        </h3>
+      </div>
+    </div>
+  );
 }
+
+const BottomGradient = () => {
+  return (
+    <>
+      <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+    </>
+  );
+};
+
+const LabelInputContainer = ({ children, className }) => {
+  return <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>;
+};

@@ -1,76 +1,109 @@
 "use client";
-import toast, { Toaster } from 'react-hot-toast';
+import React, { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
-import { use, useState } from "react";
-import Link from 'next/link'
 import { useRouter } from "next/navigation";
+import { Label } from "../../components/ui/label";
+import Link from "next/link";
+import { Input } from "../../components/ui/input";
+import { cn } from "@/lib/utils";
 
+export default function SignupFormDemo() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-export default function Signup() {
-    const [loading, setloading] = useState(false);
-    const router = useRouter();
-    const [user, setuser] = useState({
-        username: "",
-        email: "",
-        password: ""
-    });
-
-    const notify = () => toast('Created Account.');
-
-    const Signup = async () => {
-      
-        if (!user.email || !user.username || !user.password) {
-            alert("Fill The Details");
-            return;
-        }
-        try {
-            setloading(true);
-             const resp= await axios.post("/api/users/signup",user);
-             console.log("Sign Up Success",resp.data);
-
-             router.push(`/verify?email=${encodeURIComponent(user.email)}`);
-              notify();
-        } catch (error) {
-             const message =error?.response?.data?.error || "Something went wrong";
-            
-                toast.error(message);
-            console.log(error);
-
-        } finally {
-            setloading(false);
-        }
-
-
-
+    if (!user.username || !user.email || !user.password) {
+      toast.error("Please fill all required fields");
+      return;
     }
 
+    try {
+      setLoading(true);
+      const resp = await axios.post("/api/users/signup", user);
+      console.log("Sign Up Success", resp.data);
+      toast.success("Created Account.");
+      router.push(`/verify?email=${encodeURIComponent(user.email)}`);
+    } catch (error) {
+      const message = error?.response?.data?.error || "Something went wrong";
+      toast.error(message);
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <>
-            <div className=" w-full h-screen flex items-center flex-col justify-center">
-                <Toaster />
+  return (
+    <div className="shadow-input mx-auto w-full h-screen max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black">
+      <Toaster />
+      <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+        Welcome to LLama
+      </h2>
+      <p className="mt-10 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        Create Account In LLama,And Chat With Our AI
+      </p>
+      <form className="my-8 mt-10" onSubmit={handleSubmit}>
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            placeholder="projectmayhem"
+            type="text"
+            value={user.username}
+            onChange={(e) => setUser({ ...user, username: e.target.value })}
+          />
+        </LabelInputContainer>
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="email">Email Address</Label>
+          <Input
+            id="email"
+            placeholder="projectmayhem@fc.com"
+            type="email"
+            value={user.email}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
+          />
+        </LabelInputContainer>
+        <LabelInputContainer className="mb-8">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            placeholder="••••••••"
+            type="password"
+            value={user.password}
+            onChange={(e) => setUser({ ...user, password: e.target.value })}
+          />
+        </LabelInputContainer>
 
-                <h1 className=" font-bold text-white text-5xl mb-11">Create Account</h1>
-                {loading ? <h1 className=" font-bold text-white text-xl mb-2">Creating....</h1> : null}
-                <div className=" flex items-center justify-center flex-col gap-5">
-                    <div className=" flex items-center w-full max-w-md gap-5 justify-between">
-                        <label htmlFor="username">UserName : </label>
-                        <input type="text" id="username" className=" border-2 border-gray-300 rounded-xl p-2" placeholder="Enter Name" onChange={(e) => { setuser({ ...user, username: e.target.value }) }} />
-                    </div>
-                    <div className=" flex items-center w-full max-w-md gap-5 justify-between">
-                        <label htmlFor="email">Email : </label>
-                        <input type="email" id="email" className=" border-2 border-gray-300 rounded-xl p-2" placeholder="Enter email" onChange={(e) => { setuser({ ...user, email: e.target.value }) }} />
-                    </div>
-                    <div className=" flex items-center gap-5 w-full  max-w-md justify-between">
-                        <label htmlFor="password">Password : </label>
-                        <input type="password" id="password" className=" border-2 border-gray-300 rounded-xl p-2" placeholder="Enter password" onChange={(e) => { setuser({ ...user, password: e.target.value }) }} />
-                    </div>
-                    <button onClick={Signup} className=" text-white bg-gray-700 px-7 py-3 mt-5 border-2 border-gray-950 cursor-pointer hover:opacity-85 transition-all active:opacity-85 rounded-xl">Submit</button>
-
-                    <h3 className=" mt-5 text-gray-400 font-medium text-xl">Already have account? <Link href="/login" className=" text-blue-700">Login</Link></h3>
-                </div>
-            </div>
-        </>
-    )
+        <button
+          className="group/btn relative mt-10 cursor-pointer block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Sign up →"}
+          <BottomGradient />
+        </button>
+        <h3 className=" mt-5 text-sm text-neutral-600 dark:text-neutral-300">Already have account? <Link href="/login" className=" text-blue-700">Login</Link></h3>
+      </form>
+    </div>
+  );
 }
+
+const BottomGradient = () => {
+  return (
+    <>
+      <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+    </>
+  );
+};
+
+const LabelInputContainer = ({ children, className }) => {
+  return <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>;
+};
