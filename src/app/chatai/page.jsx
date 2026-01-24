@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "../../components/ui/input";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Chat() {
     const [messages, setMessages] = useState([]);
@@ -122,10 +123,15 @@ export default function Chat() {
         }
     };
 
+    const Toastit=()=>
+    [
+        toast.error("This Ai Can Reply False It Is For Testing Only")
+    ]
+
     return (
         <>
-            <nav className="h-12 border-b-2 border-[#CBCBCB] flex items-center p-5 dark:border-[#303030] justify-between">
-                <h2 className="dark:text-white text-black text-2xl font-medium">LLaMA</h2>
+            <nav className="h-12 border-b-2 border-[#CBCBCB] flex-row flex items-center p-5 dark:border-[#303030] justify-between">
+                <h2 className="dark:text-white text-black text-2xl font-medium">LLama</h2>
 
                 {/* Hamburger for mobile */}
                 <button
@@ -134,16 +140,21 @@ export default function Chat() {
                 >
                     ☰
                 </button>
+                
+            
             </nav>
 
-            <section className="flex dark:bg-[#212121] h-[40.3rem] w-full bg-white relative">
+            <section    onClick={() => setSidebarOpen(false)} className="flex dark:bg-[#212121] h-[40.3rem] w-full bg-white relative">
+                <Toaster/>
                 {/* SIDEBAR */}
                 <div
                     className={`fixed top-0 left-0 h-full w-64 p-5 bg-white dark:bg-[#181818] border-r-2 border-[#CBCBCB] dark:border-[#303030] lg:relative lg:translate-x-0 transition-transform ${
                         sidebarOpen ? "translate-x-0 z-50" : "-translate-x-full"
                     }`}
                 >
-                    <Image src="/llama.png" width={30} height={30} alt="Llama" />
+                    
+                    <Image className=" ml-20" src="/llama.png" width={30} height={30} alt="Llama" />
+                       <div onClick={Toastit} className=" size-7 rounded-full bg-white text-xl cursor-pointer hover:opacity-80 transition-all active:opacity-80 text-shadow-black text-black font-extrabold flex items-center justify-center">i</div>
 
                     <div className="flex items-center justify-between mt-10">
                         <h3 className="font-bold text-[#AFAFAF]">Your Chats</h3>
