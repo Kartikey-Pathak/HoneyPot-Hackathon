@@ -55,7 +55,7 @@ export default function Chat() {
             } catch (err) {
                 console.log(err);
             } finally {
-                toast("Warning Your Chats Are Being Saved..");
+                toast("Your Chats Are Being Saved. !");
                 setLoadingchat(false);
             }
         };
