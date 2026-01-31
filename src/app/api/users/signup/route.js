@@ -14,7 +14,13 @@ export async function POST(req) {
         const hashotp = await bcrypt.hash(otp, 10);
 
         console.log(body);
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email });
+        const nameexists=await User.findOne({username});
+        if(nameexists){
+            return NextResponse.json({ error: "UserName Exists, Try Different Name.." }, { status: 401 })
+        }
+        
+
         if (user && user.isVerified) {
             return NextResponse.json({ error: "User Exists, You Can LogIn.." }, { status: 401 })
         }
