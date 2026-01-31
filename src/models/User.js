@@ -8,6 +8,10 @@ const MessageSchema = new Schema(
       ref: "User",
       required: true,
     },
+     chatId: {   // Unique chat session ID
+      type: String,
+      required: false,
+    },
      title: {
       type: String, // chat title
       required: true,

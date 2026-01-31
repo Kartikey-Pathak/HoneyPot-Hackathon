@@ -8,13 +8,56 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function Chat() {
     const [side, setside] = useState();
-    const [input,setinput]=useState("");
-    const ref=useRef();
-    const [chats, setchats] = useState([{
-        title: "",
-        role: "",
-        content: ""
-    }]);
+    const [input, setinput] = useState("");
+
+
+    const [chatList, setChatList] = useState([]);
+    const [activeChatIndex, setActiveChatIndex] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const chatRef = useRef(null);
+
+    //for Auto Scroll
+    useEffect(() => {
+        if (chatRef.current) {
+            chatRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [chatList, activeChatIndex]);
+
+
+    useEffect(() => {
+        const loadChats = async () => {
+            try {
+                const res = await axios.get("/api/chatai", { withCredentials: true });
+                const chatsArray = [];
+
+                res.data.messages.forEach(msg => {
+
+                    let chat = chatsArray.find(c => c.id === msg.chatId);
+
+                    if (!chat) {
+                        chat = { id: msg.chatId, title: msg.title, messages: [] };
+                        chatsArray.push(chat);
+                    }
+
+                    chat.messages.push({
+                        role: msg.role,
+                        content: msg.content
+                    });
+                });
+                setChatList(chatsArray);
+                setActiveChatIndex(chatsArray.length ? 0 : null);
+            } catch (err) {
+                console.log(err);
+            } finally {
+                toast("Warning Your Chats Are Being Saved..");
+            }
+        };
+
+        loadChats();
+    }, []);
+
+
     useEffect(() => {
         const handlesize = () => {
             if (window.innerWidth < 1100) {
@@ -29,23 +72,97 @@ export default function Chat() {
         return () => window.removeEventListener("resize", handlesize);
     })
 
-    useEffect(() => {
-        const gettitle = async () => {
-            try {
-                let resp = await axios.get("/api/chatai", { withCredentials: true });
-                console.log(resp);
+    // useEffect(() => {
+    //     const gettitle = async () => {
+    //         try {
+    //             let resp = await axios.get("/api/chatai", { withCredentials: true });
+    //             console.log(resp);
 
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        gettitle();
-    })
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    //     gettitle();
+    // })
 
-    const send=async()=>{
+    const send = async () => {
         try {
-            let resp=axios.post("/ap/chatai",{chats:chats},{ withCredentials: true });
-            
+            if (!input) {
+                alert("Ask Anything !");
+                return;
+            }
+
+            let updatedChatList = [...chatList];
+            let chatIndex = activeChatIndex;
+
+            //new chat
+            if (chatIndex === null) {
+                updatedChatList.push({
+                    title: input.slice(0, 10),
+                    id: crypto.randomUUID(),
+                    messages: []
+                });
+                chatIndex = updatedChatList.length - 1;
+                setActiveChatIndex(chatIndex);
+            }
+
+            // Add user message
+            updatedChatList[chatIndex].messages.push({
+                role: "user",
+                content: input
+            });
+            setChatList(updatedChatList);
+            setinput("");
+
+            setLoading(true);
+
+            // Prepare LLM memory
+            const llmChats = updatedChatList[chatIndex].messages;
+            const title = updatedChatList[chatIndex].title;
+            const chatId = updatedChatList[chatIndex].id;
+
+            let resp = await axios.post("/api/chatai", { chats: llmChats, chatId: chatId, title: title }, { withCredentials: true });
+
+            //sync title from backend
+            updatedChatList[chatIndex].title = resp.data.title;
+
+            // Add The LLm Reply In State 
+            updatedChatList[chatIndex].messages.push({
+                role: "assistant",
+                content: resp.data.message
+            });
+
+
+            setChatList([...updatedChatList]);
+        } catch (error) {
+            console.log(error);
+        }
+        finally {
+            setLoading(false); // stop loading
+        }
+    }
+
+    const deletechat = async (index) => {
+        try {
+            const title = chatList[index].title;
+            const resp = await axios.delete("/api/chatai", { data: { title }, withCredentials: true })
+            if (resp.status === 200) {
+                const chatIdToDelete = chatList[index].id;
+
+                const newChatList = chatList.filter(chat => chat.id !== chatIdToDelete);
+                setChatList(newChatList);
+
+                //if the selected chat was deleted
+                if (activeChatIndex !== null && chatList[activeChatIndex].id === chatIdToDelete) {
+                    setActiveChatIndex(null);
+                }
+
+
+
+                toast.success("Chat Deleted");
+
+            }
+
         } catch (error) {
             console.log(error);
         }
@@ -62,15 +179,35 @@ export default function Chat() {
                             <input id="my-drawer-1" type="checkbox" className="drawer-toggle" />
                             <div className="drawer-content ">
                                 {/* Page content here */}
-                                <label htmlFor="my-drawer-1" className=" drawer-button"><i class="fa-solid fa-bars text-2xl cursor-pointer hover:text-gray-500 transition-all active:text-gray-500"></i></label>
+                                <label htmlFor="my-drawer-1" className=" drawer-button"><i class="fa-solid fa-bars text-2xl cursor-pointer hover:text-gray-500 transition-all active:text-gray-500 active:dark:text-gray-500"></i></label>
                             </div>
-                            <div className="drawer-side bg-[#181818]">
-                                <label htmlFor="my-drawer-1" aria-label="close sidebar" className="drawer-overlay"></label>
-                                <ul className="menu bg-[#181818] min-h-full w-80 p-4 ">
-                                    {/* Sidebar content here */}
-                                    <li><a>Sidebar Item 1</a></li>
-                                    <li><a>Sidebar Item 2</a></li>
-                                </ul>
+                            <div className="drawer-side ">
+                                <label htmlFor="my-drawer-1" aria-label="close sidebar" className="drawer-overlay bg-white/30 dark:bg-black/30 transition-all backdrop-blur-sm"></label>
+
+                                <div className=" h-full w-80 bg-gray-200 dark:bg-[#181818] overflow-hidden">
+                                    <div className="  h-12 mt-20 justify-between px-15 flex items-center flex-row gap-5">
+                                        <h2 className=" m-1 font-semibold text-black dark:text-[#AFAFAF] ">Your Chats</h2>
+                                        <button
+                                            onClick={() => {
+                                                setActiveChatIndex(null);
+                                                 toast.success("New Chat Created..");
+                                            }
+                                            }
+                                            className="text-2xl size-9 flex items-center justify-center bg-[#242424] hover:dark:bg-[#242424]/50 active:bg-[#242424]/50 hover:bg-[#242424]/50 rounded-full cursor-pointer text-white hover:text-gray-300"
+                                        >
+                                            <i className=" text-white text-sm font-semibold fa-solid fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div className="  mt-10 w-full h-full flex-col ml-5  gap-3 flex justify-start items-start overflow-y-scroll">
+
+                                        {chatList.map((chat, index) => (
+                                            <div onClick={() => setActiveChatIndex(index)} key={index} className={` bg-[#242424] ${activeChatIndex === index ? "dark:bg-[#242424] bg-[#242424]/50 " : "bg-[#242424]/20"} justify-between flex-row h-10 w-56 flex items-center px-6 rounded-4xl`}>
+                                                <h2>{chat.title}</h2>
+                                                <i onClick={() => { deletechat(index) }} className=" text-red-500 font-semibold cursor-pointer hover:dark:text-red-300 hover:text-red-300 transition-all active:text-red-300 active:dark:text-red-300 fa-solid fa-trash"></i>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div> : null
@@ -78,44 +215,75 @@ export default function Chat() {
 
             </nav>
 
-            <section className=" flex dark:bg-[#212121]  h-[40.3rem] w-full bg-white ">
+            <section className=" flex-row  flex dark:bg-[#212121]   h-[40rem] w-full bg-white ">
+                <Toaster />
                 {/* side Area */}
-                <div className=" h-full w-80 bg-[#181818] overflow-hidden">
-                    <div className="  mt-10 w-full h-full overflow-y-scroll">
-                        {
+                {!side ?
+                    <div className=" h-full w-80 bg-[#181818] overflow-hidden">
+                        <div className="  h-12 mt-20 justify-between px-5 flex items-center flex-row gap-5">
+                            <h2 className=" m-1 font-semibold text-[#AFAFAF] ">Your Chats</h2>
+                            <button
+                                onClick={() => {
+                                    setActiveChatIndex(null);
+                                    toast.success("New Chat Created..");
+                                }}
+                                className="text-2xl size-9 flex items-center justify-center bg-[#242424] hover:dark:bg-[#242424]/50 active:bg-[#242424]/50 hover:bg-[#242424]/50 rounded-full cursor-pointer text-white hover:text-gray-300"
+                            >
+                                <i className=" text-white text-sm font-semibold fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                        <div className="  mt-10 w-full h-full flex-col  gap-3 flex justify-start items-center overflow-y-scroll">
 
-
-
-                        }
-                    </div>
-                </div>
+                            {chatList.map((chat, index) => (
+                                <div onClick={() => setActiveChatIndex(index)} key={index} className={` bg-[#242424] ${activeChatIndex === index ? "bg-[#242424]" : "bg-[#242424]/20"} justify-between flex-row h-10 w-56 flex items-center px-6 rounded-4xl`}>
+                                    <h2>{chat.title}</h2>
+                                    <i onClick={() => { deletechat(index) }} className=" text-red-500 font-semibold cursor-pointer hover:dark:text-red-300 hover:text-red-300 transition-all active:text-red-300 active:dark:text-red-300 fa-solid fa-trash"></i>
+                                </div>
+                            ))}
+                        </div>
+                    </div> : null
+                }
 
                 {/* chat area */}
 
-                <div className="  relative w-full h-full overflow-y-scroll ">
-                    <div className="chat chat-start">
-                        <div className="chat-bubble">
-                            It's over Anakin,
-                            <br />
-                            I have the high ground.
-                        </div>
-                    </div>
-                    <div className="chat chat-end">
-                        <div className="chat-bubble">You underestimate my power!</div>
+                <div className=" px-1 lg:px-5 xl:px-7 w-full h-full flex flex-col items-center justify-center">
+
+                    <div className="   w-full h-screen mb-10 lg:mb-1 overflow-y-scroll ">
+
+                        {activeChatIndex !== null &&
+                            chatList[activeChatIndex]?.messages?.map((msg, index) => (
+                                <div
+                                    key={index}
+                                    className={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}
+                                >
+                                    <div
+                                        className={` rounded-xl px-4 chat-content py-3 chat-bubble ${msg.role === "user" ? "dark:bg-[#303030] bg-gray-200 text-black dark:text-white " : " bg-transparent text-gray-800 dark:text-white chat-start"}`}
+                                        dangerouslySetInnerHTML={{ __html: msg.content }}
+                                    />
+                                </div>
+                            ))}
+                        {/* Loader */}
+                        {loading && activeChatIndex !== null && (
+                            <div className="chat chat-start">
+                                <div className="rounded-xl px-4 py-3 chat-bubble bg-transparent text-black dark:text-white">
+                                    <span className="loading loading-ball loading-xl"></span>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={chatRef} />
                     </div>
 
-
-                    <div className="absolute bottom-10 z-50 left-0 flex flex-row items-center justify-center w-full mx-auto right-0 flex-col gap-1">
+                    <div className=" fixed xl:static mb-2 md:mb-1 gap-2  bottom-0  w-full flex items-center justify-center">
                         <Input
-                        ref={ref}
+
                             type="text"
                             placeholder="Ask Anything"
-                            onChange={(e) => setUser(setinput(e.target.value))}
-                            value={chats.value}
+                            onChange={(e) => setinput(e.target.value)}
+                            value={input}
 
-                            className=" p-5 cursor-pointer rounded-4xl h-14  w-[55rem]"
+                            className=" p-5 cursor-pointer rounded-4xl h-13 md:h-14 w-[17rem] md:w-[35rem]  lg:w-[55rem]"
                         />
-                        <button className=" cursor-pointer hover:bg-gray-300 hover:dark:bg-gray-300 transition-all active:dark:bg-gray-400 active:bg-gray-400 size-12 dark:bg-white bg-black rounded-full flex items-center justify-center"><i className=" text-white dark:text-black fa-solid fa-arrow-up"></i></button>
+                        <button onClick={send} className=" cursor-pointer hover:bg-gray-300 hover:dark:bg-gray-300 transition-all active:dark:bg-gray-400 active:bg-gray-400 size-11 md:size-12 dark:bg-white bg-black rounded-full flex items-center justify-center"><i className=" text-white dark:text-black fa-solid fa-arrow-up"></i></button>
                     </div>
                 </div>
 

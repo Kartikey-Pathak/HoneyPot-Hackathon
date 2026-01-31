@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -39,6 +39,11 @@ export default function SignupFormDemo() {
       setLoading(false);
     }
   };
+
+  useEffect(()=>{
+    toast.success("Note : - Your Password Will Be Encrypted");
+
+  },[])
 
   return (
     <div className="shadow-input mx-auto w-full h-screen max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black">
