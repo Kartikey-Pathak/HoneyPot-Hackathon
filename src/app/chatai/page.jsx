@@ -6,6 +6,8 @@ import { Input } from "../../components/ui/input";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
+import { TextChange } from "@/components/TextChange";
+
 
 export default function Chat() {
     const [side, setside] = useState();
@@ -281,6 +283,15 @@ export default function Chat() {
                                 </div>
                             </div>
                         )}
+
+                        {activeChatIndex===null&&
+                        <div className=" w-full h-full flex items-center justify-center"> 
+                         <TextChange/>
+                        </div>
+                        }
+
+
+
                         <div ref={chatRef} />
                     </div>
 
