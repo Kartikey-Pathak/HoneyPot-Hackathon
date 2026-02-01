@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { User } from "@/models/User";
+import { User } from "@/models/HoneyPot";
 import { connect } from "@/dbconfig/dbconfig";
 import { gettokeninfo } from "@/helpers/gettokeninfo";
 import { OpenRouter } from '@openrouter/sdk';

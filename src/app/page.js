@@ -208,14 +208,14 @@ export default function Home() {
                   <span className="hover:underline cursor-pointer">Privacy</span>
                   <span className="hover:underline cursor-pointer">Terms</span>
                 </div>
-                
+
               </div>
-                <div className="flex flex-col gap-3 w-fit items-start">
-                  <span className="font-medium text-black dark:text-white">Developer Profiles</span>
-                  <a href="https://github.com/Kartikey-Pathak"><span className="hover:underline cursor-pointer flex items-center justify-center gap-1">GitHub <i class="fa-brands font-semibold text-2xl fa-github"></i></span></a>
-                  <a href="https://www.linkedin.com/in/kartikey-pathakb580297/"><span className="hover:underline cursor-pointer flex items-center justify-center gap-1">Linkedin <i class="fa-brands font-semibold text-2xl fa-linkedin"></i></span></a>
-                     <a href="https://x.com/Kartikey7070"><span className="hover:underline cursor-pointer flex items-center justify-center gap-1">Twitter(X) <i class="fa-brands font-semibold text-2xl fa-twitter"></i></span></a>
-                </div>
+              <div className="flex flex-col gap-3 w-fit items-start">
+                <span className="font-medium text-black dark:text-white">Developer Profiles</span>
+                <a href="https://github.com/Kartikey-Pathak"><span className="hover:underline cursor-pointer flex items-center justify-center gap-1">GitHub <i class="fa-brands font-semibold text-2xl fa-github"></i></span></a>
+                <a href="https://www.linkedin.com/in/kartikey-pathakb580297/"><span className="hover:underline cursor-pointer flex items-center justify-center gap-1">Linkedin <i class="fa-brands font-semibold text-2xl fa-linkedin"></i></span></a>
+                <a href="https://x.com/Kartikey7070"><span className="hover:underline cursor-pointer flex items-center justify-center gap-1">Twitter(X) <i class="fa-brands font-semibold text-2xl fa-twitter"></i></span></a>
+              </div>
 
 
             </div>
